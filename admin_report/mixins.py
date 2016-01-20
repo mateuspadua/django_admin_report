@@ -1,23 +1,31 @@
 # -*- coding: utf-8 -*-
+import copy
+import sys
+import types
+import uuid
+
 from django.contrib import admin
-from django.contrib.admin.views.main import ChangeList
-from django.db.models.query import ValuesQuerySet
-from django.db.models import Sum, Avg, Count, Max, Min
 from django.contrib.admin.validation import ModelAdminValidator
-from django.http import Http404, HttpResponseRedirect
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.core.exceptions import SuspiciousOperation, ImproperlyConfigured
-from daterange_filter.filter import DateRangeFilter
+from django.db.models.query import ValuesQuerySet
+from django.db.models import Sum, Avg, Count, Max, Min
 from django.db.models import ForeignKey
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql.constants import QUERY_TERMS
-import copy
-import types
-import uuid
-import sys
+from django.http import HttpResponseRedirect
 from django.utils import formats
 
-map_aggregates = ((Sum, "__sum"), (Count, "__count"), (Avg, "__avg"), (Max, "__max"), (Min, "__min"))
+from daterange_filter.filter import DateRangeFilter
+
+map_aggregates = (
+    (Sum, "__sum"),
+    (Count, "__count"),
+    (Avg, "__avg"),
+    (Max, "__max"),
+    (Min, "__min"),
+)
 
 
 def function_builder(name_function, attr, title_column):
@@ -51,12 +59,12 @@ class ChangeListChartReport(ChangeList):
         for filter_spec in self.filter_specs:
             # print "---- filter_spec ----"
             # print filter_spec.used_parameters
-            if filter_spec.used_parameters and filter_spec.used_parameters.values()[0]:
+            if filter_spec.used_parameters and \
+                    filter_spec.used_parameters.values()[0]:
                 if isinstance(filter_spec, DateRangeFilter):
                     if filter_spec.form.is_valid():
                         # get no null params
-                        filter_params = dict(filter(lambda x: bool(x[1]),
-                                                    filter_spec.form.cleaned_data.items()))
+                        filter_params = dict(filter(lambda x: bool(x[1]),filter_spec.form.cleaned_data.items()))
                         all_query.update(**filter_params)
                 else:
                     all_query.update(filter_spec.used_parameters)
@@ -132,14 +140,17 @@ class ChangeListChartReport(ChangeList):
             # representam um campo annotate, não se pode ter o annotate na query
             self.query_to_normal_aggregate = qs
 
-            qs = qs.annotate(*self.model_admin.annotate_fields_2, **self.model_admin.annotate_fields)
+            qs = qs.annotate(
+                *self.model_admin.annotate_fields_2,
+                **self.model_admin.annotate_fields)
 
             # Set ordering.
             ordering = self.get_ordering(request, qs)
             qs = qs.order_by(*ordering)
 
             # Apply search results
-            qs, search_use_distinct = self.model_admin.get_search_results(request, qs, self.query)
+            qs, search_use_distinct = \
+                self.model_admin.get_search_results(request, qs, self.query)
 
             # print qs.query
             # print "get_queryset"
@@ -170,7 +181,8 @@ class ChangeListChartReport(ChangeList):
             result_list_in_model = self.model.objects.filter(pk__in=ids)
             result_list_in_model_dict = {}
             for item_model in result_list_in_model:
-                result_list_in_model_dict[getattr(item_model, pk_name)] = item_model
+                result_list_in_model_dict[
+                    getattr(item_model, pk_name)] = item_model
 
             # print "result_list_in_model_dict ========="
             # print result_list_in_model_dict
@@ -178,13 +190,15 @@ class ChangeListChartReport(ChangeList):
             new_result_list = []
             for row in self.result_list:
                 if pk_name in row and result_list_in_model_dict:
-                    new_row = copy.deepcopy(result_list_in_model_dict[row[pk_name]])
+                    new_row = copy.deepcopy(
+                        result_list_in_model_dict[row[pk_name]])
                 else:
                     new_row = self.model()
 
                 for key, value in list(row.items()):
                     if hasattr(new_row, key):
-                        field_object, model, direct, m2m = self.model._meta.get_field_by_name(key)
+                        field_object, model, direct, m2m = \
+                            self.model._meta.get_field_by_name(key)
                         if (m2m or isinstance(field_object, ForeignKey)) is True:
                             continue
 
@@ -208,13 +222,16 @@ class ChangeListChartReport(ChangeList):
         qs = self.queryset
         if self.model_admin.aggregate_fields_from_normal:
             # print "normal"
-            result_aggregate_from_normal_queryset = self.query_to_normal_aggregate.aggregate(*self.model_admin.aggregate_fields_from_normal)
+            result_aggregate_from_normal_queryset = \
+                self.query_to_normal_aggregate.aggregate(
+                    *self.model_admin.aggregate_fields_from_normal)
             # print "########## result_aggregate_from_normal_queryset ##########"
             # print result_aggregate_from_normal_queryset
 
         if self.model_admin.aggregate_fields_from_annotate:
             # print "annotate"
-            result_aggregate_from_annotate_queryset = qs.aggregate(*self.model_admin.aggregate_fields_from_annotate)
+            result_aggregate_from_annotate_queryset = qs.aggregate(
+                *self.model_admin.aggregate_fields_from_annotate)
             # print "########## result_aggregate_from_annotate_queryset ##########"
             # print result_aggregate_from_annotate_queryset
 
@@ -222,7 +239,9 @@ class ChangeListChartReport(ChangeList):
         # print qs.query
         # print connection.queries
 
-        result_aggregate_queryset = dict(result_aggregate_from_normal_queryset, **result_aggregate_from_annotate_queryset)
+        result_aggregate_queryset = dict(
+            result_aggregate_from_normal_queryset,
+            **result_aggregate_from_annotate_queryset)
 
         # print result_aggregate_queryset
 
@@ -236,15 +255,23 @@ class ChangeListChartReport(ChangeList):
 
                         aggregate_string_replace = "<strong>{0}:</strong> {1}"
                         if pos_value_place_holder != -1:
-                            aggregate_string_replace = aggregate[2].replace("%value", "{1}")
+                            aggregate_string_replace = aggregate[2].replace(
+                                "%value", "{1}")
 
-                        if isinstance(result_aggregate_queryset[aggregate[0]], float):
-                            label_foot = formats.number_format(result_aggregate_queryset[aggregate[0]], 2)
+                        if isinstance(result_aggregate_queryset[
+                                aggregate[0]], float):
+                            label_foot = formats.number_format(
+                                result_aggregate_queryset[aggregate[0]], 2)
                         else:
-                            label_foot = formats.localize(result_aggregate_queryset[aggregate[0]], use_l10n=True)
+                            label_foot = formats.localize(
+                                result_aggregate_queryset[aggregate[0]],
+                                use_l10n=True)
 
-                        label_foot = aggregate_string_replace.format(aggregate[2], label_foot)
-                        result_aggregate_temp = "{0}<br>{1}".format(result_aggregate_temp, label_foot) if result_aggregate_temp else label_foot
+                        label_foot = aggregate_string_replace.format(
+                            aggregate[2], label_foot)
+                        result_aggregate_temp = "{0}<br>{1}".format(
+                            result_aggregate_temp, label_foot) \
+                            if result_aggregate_temp else label_foot
                     # print "@@@@@@@@@@@@@@@@@@@@@@@"
                 if result_aggregate_temp:
                     result_aggregate.append(result_aggregate_temp)
@@ -309,12 +336,20 @@ class ChartReportAdmin(admin.ModelAdmin):
         for annotate in self.report_annotates:
             for func, end_field_name in map_aggregates:
                 if func == annotate[1]:
-                    name_field_annotate = "{0}{1}".format(annotate[0], end_field_name)
-                    new_name_field_annotate = "{0}_{1}".format(annotate[0].replace("__", "_"), str(uuid.uuid4()).replace("-", "")[:10])
-                    self.map_annotate_fields.update({name_field_annotate: new_name_field_annotate})
-                    self.annotate_fields.update({new_name_field_annotate: annotate[1](annotate[0])})
-                    self.annotate_fields_2.append(annotate[1](annotate[0]))
-                    self.addMethod(function_builder(name_field_annotate, new_name_field_annotate, annotate[2] if len(annotate) == 3 else None))
+                    name_field_annotate = "{0}{1}".format(
+                        annotate[0], end_field_name)
+                    new_name_field_annotate = "{0}_{1}".format(
+                        annotate[0].replace("__", "_"), str(
+                            uuid.uuid4()).replace("-", "")[:10])
+                    self.map_annotate_fields.update({
+                        name_field_annotate: new_name_field_annotate})
+                    self.annotate_fields.update({
+                        new_name_field_annotate: annotate[1](annotate[0])})
+                    self.annotate_fields_2.append(
+                        annotate[1](annotate[0]))
+                    self.addMethod(function_builder(
+                        name_field_annotate, new_name_field_annotate,
+                        annotate[2] if len(annotate) == 3 else None))
                     break
 
         for aggregate in self.report_aggregates:
@@ -325,7 +360,8 @@ class ChartReportAdmin(admin.ModelAdmin):
                         new_name_field = self.map_annotate_fields[aggregate[0]]
                     else:
                         new_name_field = aggregate[0]
-                    name_field_aggregate = "{0}{1}".format(new_name_field, end_field_name)
+                    name_field_aggregate = "{0}{1}".format(
+                        new_name_field, end_field_name)
 
                     copy_aggregate[0] = name_field_aggregate
 
@@ -342,17 +378,21 @@ class ChartReportAdmin(admin.ModelAdmin):
                         if column_display_list not in self.list_display:
                             column_display_list = new_label
 
-                    if column_display_list not in self.map_display_fields_and_aggregate:
-                        self.map_display_fields_and_aggregate[column_display_list] = []
+                    if (column_display_list not in
+                            self.map_display_fields_and_aggregate):
+                        self.map_display_fields_and_aggregate[
+                            column_display_list] = []
 
                     self.map_display_fields_and_aggregate[column_display_list].append(copy_aggregate)
                     break
 
             if aggregate[0] in self.map_annotate_fields:
                 new_name_field = self.map_annotate_fields[aggregate[0]]
-                self.aggregate_fields_from_annotate.append(aggregate[1](new_name_field))
+                self.aggregate_fields_from_annotate.append(
+                    aggregate[1](new_name_field))
             else:
-                self.aggregate_fields_from_normal.append(aggregate[1](aggregate[0]))
+                self.aggregate_fields_from_normal.append(
+                    aggregate[1](aggregate[0]))
 
         # print self.aggregate_fields_from_normal
         # print self.aggregate_fields_from_annotate
@@ -368,7 +408,8 @@ class ChartReportAdmin(admin.ModelAdmin):
 
     # TODO: refazer esse metodo, nao esta legal
     def add_view(self, request, form_url='', extra_context=None):
-        return HttpResponseRedirect(request.META["HTTP_REFERER"])  # volta sempre para a mesma pagina
+        return HttpResponseRedirect(
+            request.META["HTTP_REFERER"])  # volta sempre para a mesma pagina
 
     def addMethod(self, func):
         return setattr(self, func.__name__, types.MethodType(func, self))
