@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 from distutils.core import setup
 from setuptools import find_packages
 
@@ -21,14 +24,17 @@ install_requires = [
 setup(
     name="django-admin-report",
     packages=find_packages(exclude=["tests"]),
-    description="Django application and library for create reports using all power of the ORM Django",
+    description="A Django library to create reports with Django ORM",
     version=VERSION,
     author="Mateus Vanzo de Padua",
     author_email="mateuspaduaweb@gmail.com",
     license='MIT License',
     platforms=['OS Independent'],
     url="https://github.com/mateuspadua/django-admin-report",
-    keywords=['report', 'django', 'admin', 'group_by', 'annotate', 'agregate', 'ORM'],
+    keywords=[
+        'report', 'django', 'admin', 'group_by',
+        'annotate', 'agregate', 'ORM'
+    ],
     include_package_data=True,
     install_requires=install_requires,
     classifiers=CLASSIFIERS,
