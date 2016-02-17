@@ -1,5 +1,5 @@
 # django-admin-report
-Create reports using the full potential of django admin
+A Django library to create reports with Django ORM
 
 Django-Admin-Report
 ==============
