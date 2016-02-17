@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 from django.contrib import admin
-from .models import *
 from django.db.models import Sum, Avg, Count, Min, Max
+from django.utils import formats
+
 from admin_report.mixins import ChartReportAdmin
 from import_export import resources
 from import_export.admin import ExportMixin
 from import_export import fields
-from django.utils import formats
+
+from .models import *
 
 
 class AdminNoAddPermissionMixin(object):
@@ -21,25 +22,19 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    # search_fields = ('nome', 'email', 'cpf', 'rg')
     list_display = (
         'data', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
     list_filter = ('data', 'payment_type')
     inlines = [OrderItemInline]
-    # date_hierarchy = 'data'
-    # exclude = ('grupo_tributacao',)
 admin.site.register(Order, OrderAdmin)
 
 
-class ReportOrderAdmin(
-        ExportMixin,
-        AdminNoAddPermissionMixin,
-        ChartReportAdmin):
+class ReportOrderAdmin(ExportMixin,
+                       AdminNoAddPermissionMixin,
+                       ChartReportAdmin):
     list_filter = ['payment_type', 'email', 'delivered']
     list_display = (
         'data', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
-
-    # group_by = "gender"
 
     report_aggregates = (
         ('total_value', Sum, "<b>Total vendido</b>"),
@@ -88,10 +83,9 @@ class ReportOrderItemsResource(resources.ModelResource):
         return formats.number_format(obj.orderitem__total__sum, 2)
 
 
-class ReportOrderItemsAdmin(
-        ExportMixin,
-        AdminNoAddPermissionMixin,
-        ChartReportAdmin):
+class ReportOrderItemsAdmin(ExportMixin,
+                            AdminNoAddPermissionMixin,
+                            ChartReportAdmin):
     resource_class = ReportOrderItemsResource
     list_filter = ['name', 'orderitem__order__payment_type', ]
     list_display = ('name', 'valor_atual', 'orderitem__value__avg',
@@ -102,16 +96,13 @@ class ReportOrderItemsAdmin(
         return obj.value
     valor_atual.short_description = 'valor atual do produto'
     valor_atual.admin_order_field = 'value'
-    # valor_atual.allow_tags = True
 
     report_annotates = (
         ("orderitem__quantity", Sum, "total de itens vendidos"),
         ("orderitem__total", Sum, "valor total vendido"),
-        # ("orderitem__total", Count, "count total vendido"),
         ("orderitem__value", Avg, "valor médio do produto"),
         ("orderitem__value", Max, "maior valor de venda"),
         ("orderitem__value", Min, "menor valor de venda"),
-        # ("orderitem__valor_sem_desconto", Min, "menor valor do produto"),
     )
 
     report_aggregates = (

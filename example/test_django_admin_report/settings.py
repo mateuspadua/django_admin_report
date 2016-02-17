@@ -41,7 +41,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 INSTALLED_APPS = (
     'admin_report',
-    # 'suit',
     'import_export',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,11 +51,8 @@ INSTALLED_APPS = (
 
     'orders',
     'products',
-    # 'django_extensions',
-    # 'debug_toolbar',
 )
 
-# DEBUG_TOOLBAR_PATCH_SETTINGS = False
 INTERNAL_IPS = "127.0.0.1"
 
 MIDDLEWARE_CLASSES = (
