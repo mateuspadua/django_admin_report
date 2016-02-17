@@ -23,8 +23,8 @@ class OrderItemInline(admin.TabularInline):
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        'data', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
-    list_filter = ('data', 'payment_type')
+        'date', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
+    list_filter = ('date', 'payment_type')
     inlines = [OrderItemInline]
 admin.site.register(Order, OrderAdmin)
 
@@ -34,7 +34,7 @@ class ReportOrderAdmin(ExportMixin,
                        ChartReportAdmin):
     list_filter = ['payment_type', 'email', 'delivered']
     list_display = (
-        'data', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
+        'date', 'payment_type', 'email', 'delivered', 'total_value', 'gender')
 
     report_aggregates = (
         ('total_value', Sum, "<b>Total vendido</b>"),
