@@ -9,11 +9,13 @@ Django Admin Report
 A Django library to create reports with Django ORM
 
 Contents:
+=========
 
 .. toctree::
    :maxdepth: 2
    
    tutorial
+   mixins
 
 
 Indices and tables

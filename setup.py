@@ -18,7 +18,7 @@ CLASSIFIERS = [
 ]
 
 install_requires = [
-    'django-daterange-filter',
+    'requirements.txt',
 ]
 
 setup(
