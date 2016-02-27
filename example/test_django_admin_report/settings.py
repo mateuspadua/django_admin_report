@@ -41,7 +41,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 INSTALLED_APPS = (
     'admin_report',
-    'suit',
     'import_export',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,15 +51,12 @@ INSTALLED_APPS = (
 
     'orders',
     'products',
-    'django_extensions',
-    'debug_toolbar',
 )
 
-DEBUG_TOOLBAR_PATCH_SETTINGS = False
 INTERNAL_IPS = "127.0.0.1"
 
 MIDDLEWARE_CLASSES = (
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,13 +75,9 @@ WSGI_APPLICATION = 'test_django_admin_report.wsgi.application'
 
 DATABASES = {
     'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                'NAME': 'django_chart_report',
-                'USER': 'root',
-                'PASSWORD': '123456',
-                'HOST': '',
-                'PORT': '',
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 }
 
 # Internationalization
