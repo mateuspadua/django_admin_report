@@ -1,7 +1,7 @@
 Django-Admin-Report
 ===================
 
-A Django library to create reports with Django ORM
+A Django app to create reports with Django ORM
 
 This is a [Django](https://www.djangoproject.com/) app project
 
