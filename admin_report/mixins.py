@@ -165,7 +165,7 @@ class ChangeListChartReport(ChangeList):
         # print result_aggregate_from_normal_queryset.query
         result_aggregate_queryset = dict(result_aggregate_from_normal_queryset, **result_aggregate_from_annotate_queryset)
 
-        print result_aggregate_queryset
+        # print result_aggregate_queryset
 
         def get_result_aggregate(aggregate):
             # clean_name_field = aggregate[0][:-len(aggregate[0][aggregate[0].rfind("__"):])]
